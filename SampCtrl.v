@@ -4,7 +4,7 @@
 // Company      : KMITL
 // Project      : Digital Direct Synthesis Function Generator
 //----------------------------------------//
-// Version      : 0.0
+// Version      : 0.1
 // Date         : 23 Jun 2024
 // Author       : Pakapol polpinich
 // Remark       : New Creation
@@ -14,7 +14,8 @@ module SampCtrl (
     input RESETn,
     input IntBTN,
     output wire Ready,
-    output wire Enable
+    output wire Enable,
+    output wire Mode
 );
 
 //----------------------------------------//
@@ -28,6 +29,7 @@ module SampCtrl (
 
     reg rCheckIntBTN;
     reg [14:0] rCntEnable;
+    reg [14:0] rEnableValue;
     reg rEnable;
 
 //----------------------------------------//
@@ -56,17 +58,33 @@ module SampCtrl (
         end
     end
 
+    always @(posedge Fg_CLK or negedge RESETn) begin
+       if(~RESETn) begin
+            rMode <= 0;
+            rEnableValue <= 0;
+        end
+        else begin
+            case (rMode)
+            0 : rEnableValue <= 0;
+            1 : rEnableValue <= 99;
+            2 : rEnableValue <= 999;
+            3 : rEnableValue <= 9999;
+            4 : rEnableValue <= 99999;
+            endcase
+        end
+    end
+
     always @(posedge Fg_CLK or negedge RESETn ) begin
         if(RESETn == 1'b0) begin
             rEnable <= 1'd1;
             rCntEnable <= 1'b0;
         end 
         else if (rMode == 3'd0) begin
-            rEnable <= 1'd1;
-            rCntEnable <= 1'b0;
+                rEnable <= 1'd1;
+                rCntEnable <= 1'b0;
         end
-        else if (rMode == 3'd1) begin
-                if(rCntEnable == 4'd9) begin
+        else begin
+                if(rCntEnable == rEnableValue) begin
                     rEnable <= 1'd1;
                     rCntEnable <= 1'b0;
                 end else begin
@@ -74,33 +92,37 @@ module SampCtrl (
                     rCntEnable <= rCntEnable+ 1'd1;
                 end
         end
-        else if (rMode == 3'd2) begin
-                if(rCntEnable == 7'd99) begin
-                    rEnable <= 1'd1;
-                    rCntEnable <= 1'b0;
-                end else begin
-                    rEnable <= 1'd0;
-                    rCntEnable <= rCntEnable+1;
-                end
-        end
-        else if (rMode == 3'd3) begin
-                if(rCntEnable == 10'd999) begin
-                    rEnable <= 1'd1;
-                    rCntEnable <= 1'b0;
-                end else begin
-                    rEnable <= 1'd0;
-                    rCntEnable <= rCntEnable+1;
-                end
-        end
-        else if (rMode == 3'd4) begin
-                if(rCntEnable == 14'd9999) begin
-                    rEnable <= 1'd1;
-                    rCntEnable <= 1'b0;
-                end else begin
-                    rEnable <= 1'd0;
-                    rCntEnable <= rCntEnable+1;
-                end
-        end
+
+    end
+        // else if (rMode == 3'd2) begin
+        //         if(rCntEnable == 7'd99) begin
+        //             rEnable <= 1'd1;
+        //             rCntEnable <= 1'b0;
+        //         end else begin
+        //             rEnable <= 1'd0;
+        //             rCntEnable <= rCntEnable+1;
+        //         end
+        // end
+        // else if (rMode == 3'd3) begin
+        //         if(rCntEnable == 10'd999) begin
+        //             rEnable <= 1'd1;
+        //             rCntEnable <= 1'b0;
+        //         end else begin
+        //             rEnable <= 1'd0;
+        //             rCntEnable <= rCntEnable+1;
+        //         end
+        // end
+        // else if (rMode == 3'd4) begin
+        //         if(rCntEnable == 14'd9999) begin
+        //             rEnable <= 1'd1;
+        //             rCntEnable <= 1'b0;
+        //         end else begin
+        //             rEnable <= 1'd0;
+        //             rCntEnable <= rCntEnable+1;
+        //         end
+        // end
+
+
     end
 
     always @(posedge Fg_CLK or negedge RESETn) begin
