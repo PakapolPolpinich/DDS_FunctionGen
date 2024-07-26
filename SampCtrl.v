@@ -66,10 +66,10 @@ module SampCtrl (
         else begin
             case (rMode)
             0 : rEnableValue <= 0;
-            1 : rEnableValue <= 99;
-            2 : rEnableValue <= 999;
-            3 : rEnableValue <= 9999;
-            4 : rEnableValue <= 99999;
+            1 : rEnableValue <= 9;
+            2 : rEnableValue <= 99;
+            3 : rEnableValue <= 999;
+            4 : rEnableValue <= 9999;
             endcase
         end
     end
@@ -121,9 +121,6 @@ module SampCtrl (
         //             rCntEnable <= rCntEnable+1;
         //         end
         // end
-
-
-    end
 
     always @(posedge Fg_CLK or negedge RESETn) begin
         if(RESETn == 1'b0) begin
