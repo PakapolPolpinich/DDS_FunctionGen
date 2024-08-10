@@ -14,20 +14,29 @@ module button(
     input wire CLK,
     input wire RESETn,
     input wire iExtBtn,
-    output wire oIntBtn,
-    output wire [23:0] Cnt,
-    output wire [2:0] debounce
+    output wire oIntBtn
 );
+
+//----------------------------------------//
+// Signal Declaration
+//----------------------------------------//
+
     reg[2:0] rdebounce; //loss deboune counter
     
-    reg[23:0] rCnt;
+    reg[24:0] rCnt;
+
+//----------------------------------------//
+// Output Declaration
+//----------------------------------------//
 
     assign oIntBtn = (rdebounce[2] & ~rdebounce[1] & (rCnt == 24'd0)) ? 1'd1 :1'd0;
 
-    assign Cnt = rCnt;
-    assign debounce = rdebounce;
 
-    always @(posedge CLK or negedge RESETn) begin
+//----------------------------------------//
+// Process Declaration
+//----------------------------------------//
+
+    always @(posedge CLK or negedge RESETn) begin 
         if (RESETn == 1'd0) begin
             rdebounce <= 3'b111;
         end else begin //create 3 D-flip flop
@@ -38,12 +47,12 @@ module button(
     end
 
     always @(posedge CLK or negedge RESETn) begin //wrong this
-        if(~RESETn) rCnt <= 24'd0;
+        if(~RESETn) rCnt <= 25'd0;
         else begin 
-            if(rCnt == 24'd0) 
-                rCnt <= (oIntBtn == 1'd1) ? 23'd1 : 0;
+            if(rCnt == 25'd0) 
+                rCnt <= (oIntBtn == 1'd1) ? 25'd1 : 25'd0;
             else   
-                rCnt <= (rCnt != 24'd24_000_000) ? rCnt+1 : 0;
+                rCnt <= (rCnt != 25'd24_000_000) ? rCnt+25'd1 : 25'd0;
         end
     end         
 endmodule

@@ -2,18 +2,43 @@ module DDS_TOP (
     input  wire i_Ext_CLOCK,
     input  wire i_Ext_Resetn,
     input  wire i_button,
-    output wire o_FG_CLK,
-    output wire o_Enable,
-    output wire r_button
+    input  wire i_Rot_A,
+    input  wire i_Rot_B,
+    input  wire i_Rot_C,
+    output wire [11:0] o_InterpOut,
+    output wire o_Dac_CLK    
 );
+
     wire w_FgReset;
     wire w_PLLReset;
     wire w_PLL_lock;
     wire w_PLL_CLK;
-    wire w_ready;
-    wire o_Dac_CLK;
 
-    assign r_button = i_button ;
+    wire w_Fg_CLK;
+    wire w_B_sampcontrol;
+
+    wire w_ready;
+    wire w_enable;
+    wire [2:0] w_Mode_Fq;
+
+    wire [10:0]w_address;
+    wire w_FreqChng;
+
+    wire w_B_Re;
+    wire [31:0] w_sinx;
+    wire [31:0] w_cos2x;
+    wire [31:0] w_Out1;
+    wire [31:0] w_Out2;
+
+
+    button button_Ex(
+        .CLK       (w_Fg_CLK),
+        .RESETn    (i_Ext_Resetn),
+        .iExtBtn   (i_button),
+        .oIntBtn   (w_B_sampcontrol)
+    );
+ 
+
     ResetGen_Module Resetgen(
         .CLK        (i_Ext_CLOCK),
         .ExtRESETn  (i_Ext_Resetn),
@@ -32,17 +57,73 @@ module DDS_TOP (
     CLK_div clkdiv(
          .PLL_CLK   (w_PLL_CLK),
          .RESETn    (w_FgReset),
-         .Fg_CLK    (o_FG_CLK),
+         .Fg_CLK    (w_Fg_CLK),
          .Dac_CLK   (o_Dac_CLK)
     );
 
     Sampctrl Sampling(
-        .Fg_CLK     (o_FG_CLK),
-        .RESETn     (i_Ext_Resetn),
-        .IntBTN     (i_button),
+        .Fg_CLK     (w_Fg_CLK),
+        .RESETn     (w_FgReset),
+        .IntBTN     (w_B_sampcontrol),
         .Ready      (w_ready),
-        .Enable     (o_Enable)
+        .Enable     (w_enable),
+        .Mode       (w_Mode_Fq)
+    );
+    /*osc top */
+
+    button button_RE(
+        .CLK       (w_Fg_CLK),
+        .RESETn    (w_FgReset),
+        .iExtBtn   (i_Rot_C),
+        .oIntBtn   (w_B_Re)
+    );
+ 
+ 
+    Rotary rotaryencoder(
+        .Fg_CLK    (w_Fg_CLK),
+        .RESETn    (w_FgReset),
+        .Rot_A     (i_Rot_A),
+        .Rot_B     (i_Rot_B),
+        .Rot_C     (w_B_Re),
+        .Mode      (w_Mode_Fq),
+        .Address   (w_address),
+        .FreqChng  (w_FreqChng)
+    );
+ 
+ 
+    Lookuptb lookuptable(
+        .Fg_CLK    (w_Fg_CLK),
+        .RESETn    (w_FgReset),
+        .Address   (w_address),
+        .Out1      (w_Out1),
+        .Out2      (w_Out2),
+        .sinx      (w_sinx),
+        .cos2x     (w_cos2x)
+    );
+ 
+    oscillator osc(
+        .Fg_CLK    (w_Fg_CLK),
+        .RESETn    (w_FgReset),
+        .Enable    (w_enable),
+        .Ready     (w_ready),
+        .mode      (w_Mode_Fq),
+        .sinx      (w_sinx),
+        .cos2x     (w_cos2x),
+        .FreqChng  (w_FreqChng),
+        .Out1      (w_Out1),
+        .Out2      (w_Out2)
+    );
+ 
+    interpolation interp(
+        .Fg_CLK    (w_Fg_CLK),
+        .RESETn    (w_FgReset),
+        .Mode      (w_Mode_Fq),
+        .Enable    (w_enable),
+        .Out1      (w_Out1),
+        .Out2      (w_Out2),
+        .InterpOut (o_InterpOut)
     );
 
 
 endmodule
+

@@ -15,15 +15,18 @@ module interpolation(
     input  wire RESETn,
     input  wire [2:0]  Mode,
     input  wire Enable,
-    input  reg  [31:0] Out1,
-    input  reg  [31:0] Out2,
-    output reg  [11:0] InterpOut
+    input  wire  [31:0] Out1,
+    input  wire  [31:0] Out2,
+    output wire  [11:0] InterpOut
 );
 
 reg Enable_delay;
 reg [63:0] delta;
 reg [31:0] r_N;
 reg [31:0] rOutput;
+reg [11:0] osc_out;
+
+assign InterpOut = {~osc_out[11],osc_out[10:0]};
 
 always @(*) begin
     if(~RESETn) r_N <= 32'd1;
@@ -34,6 +37,7 @@ always @(*) begin
         3'd2 : r_N <= 32'd5368709; 
         3'd3 : r_N <= 32'd536871;
         3'd4 : r_N <= 32'd53687;
+        default: r_N = 32'd1;
         endcase
     end
 end
@@ -62,9 +66,9 @@ end
 
 
 always @(posedge Fg_CLK or negedge RESETn) begin /*output 12 bit*/
-    if(~RESETn) InterpOut <= 12'd0;
+    if(~RESETn) osc_out <= 12'd0;
     else  begin
-        InterpOut <= rOutput[29:18];
+        osc_out <= rOutput[29:18];//30:19 graph ok
     end
 end
 
