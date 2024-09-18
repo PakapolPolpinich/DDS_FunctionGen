@@ -9,6 +9,10 @@ module DDS_TOP (
     output wire o_Dac_CLK    
 );
 
+//----------------------------------------//
+// Signal Declaration
+//----------------------------------------//
+
     wire w_FgReset;
     wire w_PLLReset;
     wire w_PLL_lock;

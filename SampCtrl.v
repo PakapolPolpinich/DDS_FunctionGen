@@ -6,6 +6,11 @@ module Sampctrl (
     output wire Enable,
     output wire  [2:0] Mode
 );
+
+//----------------------------------------//
+// Signal Declaration
+//----------------------------------------//
+
     reg [8:0] rCntReady;
     reg rCheckresetn;
     reg rReady;
@@ -16,9 +21,18 @@ module Sampctrl (
     reg [14:0] rCntEnable;
     reg rEnable;
 
+//----------------------------------------//
+// Output Declaration
+//----------------------------------------//
+
+
     assign Ready = rReady;
     assign Enable = rEnable;
     assign Mode = rMode;
+
+//----------------------------------------//
+// Process Declaration
+//----------------------------------------//
 
 
     always @(posedge Fg_CLK or negedge RESETn) begin

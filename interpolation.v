@@ -20,13 +20,26 @@ module interpolation(
     output wire  [11:0] InterpOut
 );
 
+//----------------------------------------//
+// Signal Declaration
+//----------------------------------------//
+
 reg Enable_delay;
 reg [63:0] delta;
 reg [31:0] r_N;
 reg [31:0] rOutput;
 reg [11:0] osc_out;
 
+//----------------------------------------//
+// Output Declaration
+//----------------------------------------//
+
+
 assign InterpOut = {~osc_out[11],osc_out[10:0]};
+
+//----------------------------------------//
+// Process Declaration
+//----------------------------------------//
 
 always @(*) begin
     if(~RESETn) r_N <= 32'd1;

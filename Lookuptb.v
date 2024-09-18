@@ -8,21 +8,19 @@ module Lookuptb(
     output wire [31:0] cos2x
 );
 
-reg [47:0] coef;
-wire [47:0] data;
+wire [47:0] coef;
+//wire [47:0] data;
 assign sinx  = {4'b0000   ,coef[47:24],4'b0000};
 assign cos2x = {6'b001111,coef[23:0] ,2'b00};
 
-always @(*) begin
-    coef = data;
-end
+
 
 pROMcoef Rom(
-        .dout(data), //output [47:0] dout
+        .dout(coef), //output [47:0] dout
         .clk(Fg_CLK), //input clk
         .oce(1'd0), //input oce
         .ce(1'd1), //input ce
-        .reset(RESETn), //input reset
+        .reset(~RESETn), //input reset
         .ad(Address) //input [10:0] ad
     );
 

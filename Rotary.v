@@ -8,6 +8,11 @@ module Rotary(
     output wire [10:0] Address,
     output wire FreqChng
 );
+
+//----------------------------------------//
+// Signal Declaration
+//----------------------------------------//
+
     reg[2:0] r_sys_a;
     reg[2:0] r_sys_b;
 
@@ -26,24 +31,27 @@ module Rotary(
     reg [22:0] rCntdelay;
     reg Delaysignal;
     
-    
+//----------------------------------------//
+// Constant Declaration
+//----------------------------------------//
     parameter   idle = 4'd0,
                 StCountUp = 4'd1,
                 StCountDown = 4'd2 ;
 
+//----------------------------------------//
+// Output Declaration
+//----------------------------------------//
+
+    assign Address = rAddress;
+    assign FreqChng = rFreqChng;
+
+//----------------------------------------//
+// Process Declaration
+//----------------------------------------//
     always @(*) begin
         r_A_fall = (r_sys_a[1] & ~ r_sys_a[0]) ? 1'd1:1'd0;
         r_B_fall = (r_sys_b[1] & ~r_sys_b[0]) ? 1'd1:1'd0;
     end
-
-    
-
-
-    // assign r_A_fall = (r_sys_a[1] & ~ r_sys_a[0]) ? 1'd1:1'd0;
-    // assign r_B_fall = (r_sys_b[1] & ~r_sys_b[0]) ? 1'd1:1'd0;
-
-    assign Address = rAddress;
-    assign FreqChng = rFreqChng;
 
     always @(posedge Fg_CLK or negedge RESETn) begin
         if(~RESETn) r_sys_a <= 3'b111;
