@@ -49,8 +49,8 @@ module Rotary(
 // Process Declaration
 //----------------------------------------//
     always @(*) begin
-        r_A_fall = (r_sys_a[1] & ~ r_sys_a[0]) ? 1'd1:1'd0;
-        r_B_fall = (r_sys_b[1] & ~r_sys_b[0]) ? 1'd1:1'd0;
+        r_A_fall = (r_sys_a[2] & ~ r_sys_a[1]) ? 1'd1:1'd0;
+        r_B_fall = (r_sys_b[2] & ~r_sys_b[1]) ? 1'd1:1'd0;
     end
 
     always @(posedge Fg_CLK or negedge RESETn) begin
@@ -58,14 +58,16 @@ module Rotary(
         else begin
             r_sys_a[0] <= Rot_A;
             r_sys_a[1] <= r_sys_a[0];
+            r_sys_a[2] <= r_sys_a[1];
         end
     end
 
     always @(posedge Fg_CLK or negedge RESETn) begin
         if(~RESETn) r_sys_b <= 3'b111;
         else begin
-            r_sys_b[0] <= Rot_B;
+            r_sys_b[0] <= Rot_B; 
             r_sys_b[1] <= r_sys_b[0];
+            r_sys_b[2] <= r_sys_b[1];
         end
     end
 

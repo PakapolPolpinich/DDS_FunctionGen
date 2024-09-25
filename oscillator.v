@@ -105,7 +105,7 @@ end
 
 
 always @(*) begin
-    if(zero_cross & update_wait) update = 1;
+    if(zero_cross && update_wait && Enable) update = 1;
     else update = 0;
 end
 
