@@ -6,7 +6,8 @@ module DDS_TOP (
     input  wire i_Rot_B,
     input  wire i_Rot_C,
     output wire [11:0] o_InterpOut,
-    output wire o_Dac_CLK    
+    output wire o_Dac_CLK,
+    output wire [2:0] o_led_step   
 );
 
 //----------------------------------------//
@@ -91,7 +92,8 @@ module DDS_TOP (
         .Rot_C     (w_B_Re),
         .Mode      (w_Mode_Fq),
         .Address   (w_address),
-        .FreqChng  (w_FreqChng)
+        .FreqChng  (w_FreqChng),
+        .LedmodeRotary (o_led_step)
     );
  
  

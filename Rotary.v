@@ -6,7 +6,8 @@ module Rotary(
     input wire Rot_C,
     input  wire [2:0] Mode,
     output wire [10:0] Address,
-    output wire FreqChng
+    output wire FreqChng,
+    output reg [2:0] LedmodeRotary
 );
 
 //----------------------------------------//
@@ -32,6 +33,7 @@ module Rotary(
     reg Delaysignal;
     
     reg [10:0] cool_cnt;
+
 //----------------------------------------//
 // Constant Declaration
 //----------------------------------------//
@@ -84,12 +86,24 @@ module Rotary(
     end
 
     always  @(posedge Fg_CLK or negedge RESETn) begin
-        if(~RESETn) step <= 7'd1;
+        if(~RESETn) begin 
+          step <= 7'd1;
+          LedmodeRotary <= 3'b111;
+        end
         else 
           case(Modestep)
-            3'd0: step <= 7'd1;
-            3'd1: step <= 7'd10;
-            3'd2: step <= 7'd100;
+            3'd0: begin 
+              step <= 7'd1;
+              LedmodeRotary <= 3'b110;  
+              end
+            3'd1: begin 
+              step <= 7'd10;
+              LedmodeRotary <= 3'b101; 
+              end
+            3'd2: begin 
+              step <= 7'd100;
+              LedmodeRotary <= 3'b011;
+              end
             endcase
     end
 
@@ -167,4 +181,5 @@ always @(posedge Fg_CLK or negedge RESETn) begin
             else rFreqChng <= 1'd0; 
         end
     end
+
 endmodule
