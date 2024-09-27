@@ -18,8 +18,8 @@ assign cos2x = {6'b001111,coef[23:0] ,2'b00};
 pROMcoef Rom(
         .dout(coef), //output [47:0] dout
         .clk(Fg_CLK), //input clk
-        .oce(1'd0), //input oce
-        .ce(1'd1), //input ce
+        .oce(1'b1), //input oce
+        .ce(1'b1), //input ce
         .reset(~RESETn), //input reset
         .ad(Address) //input [10:0] ad
     );

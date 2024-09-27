@@ -100,7 +100,7 @@ module Sampctrl (
                 
             end
             else rMode <= rMode;
-end
+        end
     end
 
 

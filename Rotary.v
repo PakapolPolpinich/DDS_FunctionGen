@@ -13,8 +13,8 @@ module Rotary(
 // Signal Declaration
 //----------------------------------------//
 
-    reg[2:0] r_sys_a;
-    reg[2:0] r_sys_b;
+    reg[2:0] FF_sys_A;
+    reg[2:0] FF_sys_B;
 
     reg r_A_fall;
     reg r_B_fall;
@@ -31,12 +31,14 @@ module Rotary(
     reg [22:0] rCntdelay;
     reg Delaysignal;
     
+    reg [10:0] cool_cnt;
 //----------------------------------------//
 // Constant Declaration
 //----------------------------------------//
     parameter   idle = 4'd0,
                 StCountUp = 4'd1,
-                StCountDown = 4'd2 ;
+                StCountDown = 4'd2,
+                StCooldown = 4'd3;
 
 //----------------------------------------//
 // Output Declaration
@@ -48,28 +50,23 @@ module Rotary(
 //----------------------------------------//
 // Process Declaration
 //----------------------------------------//
+
+    always @(posedge Fg_CLK or negedge RESETn) begin
+        if(~RESETn) begin
+            FF_sys_A <= 3'b000;
+            FF_sys_B <= 3'b000;
+        end
+        else begin
+            FF_sys_A <= {FF_sys_A[1:0],Rot_A};
+            FF_sys_B <= {FF_sys_B[1:0],Rot_B};
+        end
+    end
+
     always @(*) begin
-        r_A_fall = (r_sys_a[2] & ~ r_sys_a[1]) ? 1'd1:1'd0;
-        r_B_fall = (r_sys_b[2] & ~r_sys_b[1]) ? 1'd1:1'd0;
+        r_A_fall = (FF_sys_A[2] & ~FF_sys_A[1]) ? 1'd1:1'd0;
+        r_B_fall = (FF_sys_B[2] & ~FF_sys_B[1]) ? 1'd1:1'd0;
     end
 
-    always @(posedge Fg_CLK or negedge RESETn) begin
-        if(~RESETn) r_sys_a <= 3'b111;
-        else begin
-            r_sys_a[0] <= Rot_A;
-            r_sys_a[1] <= r_sys_a[0];
-            r_sys_a[2] <= r_sys_a[1];
-        end
-    end
-
-    always @(posedge Fg_CLK or negedge RESETn) begin
-        if(~RESETn) r_sys_b <= 3'b111;
-        else begin
-            r_sys_b[0] <= Rot_B; 
-            r_sys_b[1] <= r_sys_b[0];
-            r_sys_b[2] <= r_sys_b[1];
-        end
-    end
 
     always @(posedge Fg_CLK or negedge RESETn) begin // signal form button interface
         if(~RESETn) begin
@@ -88,46 +85,55 @@ module Rotary(
 
     always  @(posedge Fg_CLK or negedge RESETn) begin
         if(~RESETn) step <= 7'd1;
-        else case(Modestep)
+        else 
+          case(Modestep)
             3'd0: step <= 7'd1;
             3'd1: step <= 7'd10;
-            3'd2: step <= 7'D100;
+            3'd2: step <= 7'd100;
             endcase
     end
 
-
-    always@(posedge Fg_CLK or negedge RESETn) begin
-        if(~RESETn)begin
-             rCurrentState <= idle;
-             count <= 0;
-        end
-          else begin
-            if(Mode == 3'd4 && count < 11'd800) count <= 11'd800;
-            else begin
-                case (rCurrentState) //fsm
-                idle : begin
-                    if(r_B_fall == 1'd1) begin
-                        count <= (count + step > 11'd1800) ? 11'd1800 : count + step;     
-                        rCurrentState <= StCountUp;
+always @(posedge Fg_CLK or negedge RESETn) begin
+    if (~RESETn) begin
+      rCurrentState  <= idle;
+      count    <= 0;
+      cool_cnt <= 0;
+    end 
+    else begin
+      if ((Mode == 3'd4) & (count < 11'd800)) count <= 11'd800; 
+        else  begin
+            case (rCurrentState)
+              idle: begin
+                      if      (r_B_fall) rCurrentState <= 1; 
+                      else if (r_A_fall) rCurrentState <= 2;
                     end
-                    else if (r_A_fall == 1'd1) begin
-                        if(Mode == 3'd4) count <= (count - step < 11'd800 ) ? 11'd800 : count - step;
-                        else count <= (count < step ) ? 11'd0 : count - step; // ทำไม count - step < 0 ไม่เข้าเงื่อนไข
-                        rCurrentState <= StCountDown;
-                    end
-                    else rCurrentState <= rCurrentState;
-                end
-                StCountUp : begin
-                    rCurrentState <= (r_A_fall == 1'd1) ? idle : StCountUp;
-                end
-                StCountDown :begin
-                rCurrentState  <= (r_B_fall == 1'd1) ? idle : StCountDown; 
-                end
-                endcase
-            end
+              StCountUp: begin  
+                      if (r_A_fall) begin
+                        rCurrentState <= StCooldown; 
+                        count <= ($unsigned(count+step)>1799) ? 11'd1799 : count+step;
+                      end
+                      end  
+              StCountDown: begin  
+                      if (r_B_fall) begin
+                        rCurrentState <= StCooldown; 
+                        count <=  ((Mode  == 3'd4 ) & (count <= 800)) ? 11'd800 :              // No less than 800 in mode4
+                                  ($unsigned(count) <= $unsigned(step)) ? 11'd0 : count-step; // if count<=step, set to 0 to avoid overflow
+                      end
+                 end 
+              StCooldown: begin // cool down stage to avoid glitch
+                      if ((cool_cnt >= 256) & (FF_sys_A[2]==1) & (FF_sys_B[2]==1)) begin // cool down for 256 clock (can be adjusted if not smooth)
+                          cool_cnt <= 0;                                               // Also wait until A and B are 1 (idle stage)
+                          rCurrentState <= idle;
+                      end else begin 
+                          cool_cnt <= (cool_cnt<256) ? cool_cnt+11'd1 : cool_cnt;
+                      end
+                 end 
+            endcase
+          end
+      end
+  end
 
-        end 
-    end
+
     
     always@(posedge Fg_CLK or negedge RESETn) begin /* delay 100 ms*/
         if(~RESETn) begin
@@ -135,7 +141,7 @@ module Rotary(
             Delaysignal <= 1'd0;
         end
         else begin
-            if(rCntdelay == 22'd2400) begin
+            if(rCntdelay == 22'd2400000) begin
                 Delaysignal <= 1'd1;
                 rCntdelay <= 22'd0;
             end

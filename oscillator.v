@@ -1,15 +1,3 @@
-//----------------------------------------//
-// Filename     : oscillator.v
-// Description  : oscillator
-// Company      : KMITL
-// Project      : Digital Direct Synthesis Function Generator
-//----------------------------------------//
-// Version      : 0.0
-// Date         : 23 Jun 2024
-// Author       : Pakapol polpinich
-// Remark       : New Creation
-//----------------------------------------//
-
 module oscillator(
     input wire Fg_CLK,
     input wire RESETn,
@@ -78,7 +66,7 @@ end
 
 always @(posedge Fg_CLK or negedge RESETn) begin
     if(~RESETn) r_out2 <= 0;
-    else if (Ready || update)  r_out2 <= 0;
+    else if (Ready || update)  r_out2 <= 32'h000000AB; // fix delay mode 1
     else if (Enable) r_out2 <= r_out1;
 end
 
@@ -114,5 +102,4 @@ always @(*) begin
     sine = (dir == 1) ? sinx : ~sinx + 1;
 end
 endmodule
-
 
