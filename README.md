@@ -8,9 +8,9 @@ This function generator can sysnthesis sine wave signal that has frequency betwe
 ![image](https://github.com/user-attachments/assets/f8db88ce-b997-4f5b-9280-bbd8e15b2d81)
 
 ## PCB
-- Top layer
+### - Top layer
   ![image](https://github.com/user-attachments/assets/08f6c800-5ec7-4f43-bd24-a1b28be1b725)
-- bottom layer
+### - bottom layer
   ![image](https://github.com/user-attachments/assets/e5793669-96b1-427b-9f21-71e1bf94869c)
 
 ## PCBA
